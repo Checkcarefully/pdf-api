@@ -130,11 +130,12 @@
             <h3>发票识别</h3>
             <input type="file" id="file4" accept=".pdf" onchange="showFileName(this, 'list4')">
             <div id="list4" class="file-list"></div>
+            <p class="hint" style="color:#ff6b6b; margin-bottom:12px;">测试版：识别效果因发票格式而异</p>
             <button onclick="upload('/extract/invoice', 'file4')">识别发票</button>
-            <p class="hint" style="color:#ff6b6b;">测试版：识别效果因发票格式而异</p>
             <div class="loading" id="load4">处理中...</div>
             <div class="result" id="result4"></div>
         </div>
+
 
         <div class="api-box">
             <h3>PDF拆分</h3>
