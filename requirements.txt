@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 fastapi
 uvicorn
 pymupdf
 pdfplumber
 python-multipart
 pypdf
-=======
-fastapi
-uvicorn
-pymupdf
-pdfplumber
-python-multipart
->>>>>>> 0725cdd8e2aee9aa0b6d6753a4ef38816949be07
