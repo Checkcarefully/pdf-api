@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF工具箱</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: #333; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        .api-box {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .api-box h3 {
+            color: #007bff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .api-box h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 2px;
+        }
+        input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        input[type="text"] { margin-top: 8px; }
+        .hint {
+            color: #999;
+            font-size: 12px;
+            margin: -8px 0 12px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: none;
+            font-size: 13px;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result.show { display: block; }
+        .result pre { white-space: pre-wrap; word-wrap: break-word; }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .loading {
+            display: none;
+            color: #007bff;
+            margin-top: 10px;
+        }
+        .file-list { margin-bottom: 12px; }
+        .file-tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 4px;
+            margin: 0 8px 8px 0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF工具箱</h1>
+        <p class="subtitle">教师办公自动化工具 | 支持转文本、合并、提取表格、发票识别、拆分</p>
+
+        <div class="api-box">
+            <h3>PDF转文本</h3>
+            <input type="file" id="file1" accept=".pdf" onchange="showFileName(this, 'list1')">
+            <div id="list1" class="file-list"></div>
+            <button onclick="upload('/extract/text', 'file1')">提取文字</button>
+            <div class="loading" id="load1">处理中...</div>
+            <div class="result" id="result1"></div>
+        </div>
+
+        <div class="api-box">
+            <h3>PDF合并</h3>
+            <input type="file" id="file2" multiple accept=".pdf" onchange="showFileName(this, 'list2')">
+            <div id="list2" class="file-list"></div>
+            <button onclick="uploadMultiple('/merge', 'file2')">合并下载</button>
+            <div class="loading" id="load2">处理中...</div>
+            <div class="result" id="result2"></div>
+        </div>
+
+        <div class="api-box">
+            <h3>提取表格</h3>
+            <input type="file" id="file3" accept=".pdf" onchange="showFileName(this, 'list3')">
+            <div id="list3" class="file-list"></div>
+            <button onclick="upload('/extract/tables', 'file3')">提取表格</button>
+            <div class="loading" id="load3">处理中...</div>
+            <div class="result" id="result3"></div>
+        </div>
+
+        <div class="api-box">
+            <h3>发票识别</h3>
+            <input type="file" id="file4" accept=".pdf" onchange="showFileName(this, 'list4')">
+            <div id="list4" class="file-list"></div>
+            <button onclick="upload('/extract/invoice', 'file4')">识别发票</button>
+            <div class="loading" id="load4">处理中...</div>
+            <div class="result" id="result4"></div>
+        </div>
+
+        <div class="api-box">
+            <h3>PDF拆分</h3>
+            <input type="file" id="file5" accept=".pdf" onchange="showFileName(this, 'list5')">
+            <div id="list5" class="file-list"></div>
+            <input type="text" id="pages" placeholder="页码范围，如：1-3 或 5 或 1-3,5,7-9">
+            <p class="hint">支持格式：单页(5)、范围(1-3)、多段(1-3,5,7-9)</p>
+            <button onclick="upload('/split', 'file5', {pages: document.getElementById('pages').value})">拆分下载</button>
+            <div class="loading" id="load5">处理中...</div>
+            <div class="result" id="result5"></div>
+        </div>
+    </div>
+
+    <script>
+        function showFileName(input, listId) {
+            const list = document.getElementById(listId);
+            if (input.multiple) {
+                list.innerHTML = Array.from(input.files).map(f => `<span class="file-tag">${f.name}</span>`).join('');
+            } else {
+                list.innerHTML = input.files[0] ? `<span class="file-tag">${input.files[0].name}</span>` : '';
+            }
+        }
+
+        async function upload(url, fileId, extraData = {}) {
+            const file = document.getElementById(fileId).files[0];
+            if (!file) return alert('请选择文件');
+
+            const loadId = 'load' + fileId.replace('file', '');
+            const resId = 'result' + fileId.replace('file', '');
+            document.getElementById(loadId).style.display = 'block';
+            document.getElementById(resId).classList.remove('show');
+
+            const form = new FormData();
+            form.append('file', file);
+            Object.entries(extraData).forEach(([k, v]) => form.append(k, v));
+
+            try {
+                const res = await fetch(url, {method: 'POST', body: form});
+                const contentType = res.headers.get('content-type');
+
+                if (contentType && contentType.includes('application/pdf')) {
+                    const blob = await res.blob();
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    const filename = res.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1] || 'download.pdf';
+                    link.download = filename;
+                    link.click();
+                    showResult(resId, 'success', 'PDF已下载：' + filename);
+                } else {
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || data.error || '处理失败');
+                    showResult(resId, 'success', JSON.stringify(data, null, 2));
+                }
+            } catch (err) {
+                showResult(resId, 'error', '错误：' + err.message);
+            } finally {
+                document.getElementById(loadId).style.display = 'none';
+            }
+        }
+
+        async function uploadMultiple(url, fileId) {
+            const files = document.getElementById(fileId).files;
+            if (files.length < 2) return alert('请至少选择2个文件');
+
+            const loadId = 'load' + fileId.replace('file', '');
+            const resId = 'result' + fileId.replace('file', '');
+            document.getElementById(loadId).style.display = 'block';
+            document.getElementById(resId).classList.remove('show');
+
+            const form = new FormData();
+            Array.from(files).forEach(f => form.append('files', f));
+
+            try {
+                const res = await fetch(url, {method: 'POST', body: form});
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || data.error || '合并失败');
+                }
+                const blob = await res.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'merged.pdf';
+                link.click();
+                showResult(resId, 'success', '合并完成，已下载 merged.pdf');
+            } catch (err) {
+                showResult(resId, 'error', '错误：' + err.message);
+            } finally {
+                document.getElementById(loadId).style.display = 'none';
+            }
+        }
+
+        function showResult(id, type, text) {
+            const el = document.getElementById(id);
+            el.className = 'result show ' + type;
+            el.innerHTML = '<pre>' + text + '</pre>';
+        }
+    </script>
+</body>
+</html>
