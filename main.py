@@ -45,6 +45,22 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Add at the top of main.py, after imports
+request_count = 0
+
+@app.middleware("http")
+async def count_requests(request, call_next):
+    global request_count
+    request_count += 1
+    print(f"Total requests: {request_count}")
+    response = await call_next(request)
+    return response
+
+# Add this endpoint to check stats
+@app.get("/stats")
+async def stats():
+    return {"total_requests": request_count, "message": "Visit count updated"}
+
 # 挂载静态文件目录（前端页面）
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
