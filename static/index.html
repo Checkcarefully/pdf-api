@@ -3,170 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF工具箱</title>
+    <title>PDF工具箱 - 教师办公自动化</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            line-height: 1.6;
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        h1 { text-align: center; color: #333; margin-bottom: 10px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
-        .api-box {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            color: white;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .api-box h3 {
-            color: #007bff;
-            margin-bottom: 16px;
+
+        .stats {
+            display: inline-flex;
+            gap: 30px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats span {
+            font-size: 14px;
+        }
+
+        .stats strong {
+            font-size: 24px;
+            display: block;
+        }
+
+        /* 功能卡片 */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .tools-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 28px; }
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tool-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .icon-text { background: #e3f2fd; }
+        .icon-merge { background: #e8f5e9; }
+        .icon-table { background: #fff3e0; }
+        .icon-invoice { background: #fce4ec; }
+        .icon-split { background: #f3e5f5; }
+
+        .tool-title h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tool-title p {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-area input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* 文件列表 */
+        .file-list {
+            margin-top: 15px;
+        }
+
+        .file-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin: 0 8px 8px 0;
+            font-size: 13px;
+        }
+
+        .file-tag .remove {
+            cursor: pointer;
+            color: #999;
+        }
+
+        .file-tag .remove:hover {
+            color: #e74c3c;
+        }
+
+        /* 输入框 */
+        .input-group {
+            margin-top: 15px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* 按钮 */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 进度条 */
+        .progress {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .progress.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* 结果区域 */
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result-success {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+
+        .result-error {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+
+        .result-info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .api-box h3::before {
-            content: '';
-            display: inline-block;
-            width: 4px;
-            height: 20px;
-            background: #007bff;
-            border-radius: 2px;
-        }
-        input[type="file"], input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 12px;
+
+        .result-content {
             font-size: 14px;
-        }
-        input[type="text"] { margin-top: 8px; }
-        .hint {
-            color: #999;
-            font-size: 12px;
-            margin: -8px 0 12px 0;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        button:hover { background: #0056b3; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .result {
-            margin-top: 16px;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            display: none;
-            font-size: 13px;
-            word-break: break-all;
-            max-height: 400px;
+            line-height: 1.6;
+            max-height: 300px;
             overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
-        .result.show { display: block; }
-        .result pre { white-space: pre-wrap; word-wrap: break-word; }
-        .error { color: #dc3545; }
-        .success { color: #28a745; }
-        .loading {
-            display: none;
-            color: #007bff;
-            margin-top: 10px;
+
+        .result-content pre {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
         }
-        .file-list { margin-bottom: 12px; }
-        .file-tag {
+
+        .download-btn {
             display: inline-block;
-            background: #e9ecef;
-            padding: 4px 12px;
-            border-radius: 4px;
-            margin: 0 8px 8px 0;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            padding: 30px;
             font-size: 13px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        /* 加载动画 */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>PDF工具箱</h1>
-        <p class="subtitle">教师办公自动化工具 | 支持转文本、合并、提取表格、发票识别、拆分</p>
-
-        <div class="api-box">
-            <h3>PDF转文本</h3>
-            <input type="file" id="file1" accept=".pdf" onchange="showFileName(this, 'list1')">
-            <div id="list1" class="file-list"></div>
-            <button onclick="upload('/extract/text', 'file1')">提取文字</button>
-            <div class="loading" id="load1">处理中...</div>
-            <div class="result" id="result1"></div>
+        <!-- 头部 -->
+        <div class="header">
+            <h1>📄 PDF工具箱</h1>
+            <p>教师办公自动化工具，让繁琐变简单</p>
+            <div class="stats">
+                <span><strong id="stat-files">0</strong>份文件已处理</span>
+                <span><strong id="stat-users">0</strong>位教师使用</span>
+            </div>
         </div>
 
-        <div class="api-box">
-            <h3>PDF合并</h3>
-            <input type="file" id="file2" multiple accept=".pdf" onchange="showFileName(this, 'list2')">
-            <div id="list2" class="file-list"></div>
-            <button onclick="uploadMultiple('/merge', 'file2')">合并下载</button>
-            <div class="loading" id="load2">处理中...</div>
-            <div class="result" id="result2"></div>
+        <!-- 工具网格 -->
+        <div class="tools-grid">
+            <!-- PDF转文本 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon icon-text">📝</div>
+                    <div class="tool-title">
+                        <h3>PDF转文本</h3>
+                        <p>扫描试卷、文档转可搜索文字</p>
+                    </div>
+                </div>
+                <div class="upload-area" onclick="document.getElementById('file1').click()">
+                    <input type="file" id="file1" accept=".pdf" onchange="handleFile(this, 'list1')">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">点击或拖拽上传PDF</div>
+                    <div class="upload-hint">支持扫描件，自动识别文字</div>
+                </div>
+                <div id="list1" class="file-list"></div>
+                <button class="btn btn-primary" id="btn1" onclick="upload('/extract/text', 'file1', 'result1', 'btn1')">
+                    <span>提取文字</span>
+                </button>
+                <div class="progress" id="progress1">
+                    <div class="progress-bar"><div class="progress-fill" id="fill1"></div></div>
+                    <div class="progress-text" id="text1">处理中...</div>
+                </div>
+                <div class="result result-info" id="result1"></div>
+            </div>
+
+            <!-- PDF合并 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon icon-merge">🔗</div>
+                    <div class="tool-title">
+                        <h3>PDF合并</h3>
+                        <p>多班成绩表、多文件一键汇总</p>
+                    </div>
+                </div>
+                <div class="upload-area" onclick="document.getElementById('file2').click()">
+                    <input type="file" id="file2" multiple accept=".pdf" onchange="handleMultipleFiles(this, 'list2')">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击或拖拽上传多个PDF</div>
+                    <div class="upload-hint">至少选择2个文件，按选择顺序合并</div>
+                </div>
+                <div id="list2" class="file-list"></div>
+                <button class="btn btn-primary" id="btn2" onclick="uploadMultiple('/merge', 'file2', 'result2', 'btn2')">
+                    <span>合并下载</span>
+                </button>
+                <div class="progress" id="progress2">
+                    <div class="progress-bar"><div class="progress-fill" id="fill2"></div></div>
+                    <div class="progress-text" id="text2">处理中...</div>
+                </div>
+                <div class="result result-success" id="result2"></div>
+            </div>
+
+            <!-- 提取表格 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon icon-table">📊</div>
+                    <div class="tool-title">
+                        <h3>提取表格</h3>
+                        <p>PDF成绩表、报表转Excel格式</p>
+                    </div>
+                </div>
+                <div class="upload-area" onclick="document.getElementById('file3').click()">
+                    <input type="file" id="file3" accept=".pdf" onchange="handleFile(this, 'list3')">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">点击或拖拽上传PDF</div>
+                    <div class="upload-hint">自动识别表格结构，保留行列数据</div>
+                </div>
+                <div id="list3" class="file-list"></div>
+                <button class="btn btn-primary" id="btn3" onclick="upload('/extract/tables', 'file3', 'result3', 'btn3')">
+                    <span>提取表格</span>
+                </button>
+                <div class="progress" id="progress3">
+                    <div class="progress-bar"><div class="progress-fill" id="fill3"></div></div>
+                    <div class="progress-text" id="text3">处理中...</div>
+                </div>
+                <div class="result result-info" id="result3"></div>
+            </div>
+
+            <!-- 发票识别 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon icon-invoice">🧾</div>
+                    <div class="tool-title">
+                        <h3>发票识别</h3>
+                        <p>增值税发票信息自动提取</p>
+                    </div>
+                </div>
+                <div class="upload-area" onclick="document.getElementById('file4').click()">
+                    <input type="file" id="file4" accept=".pdf" onchange="handleFile(this, 'list4')">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">点击或拖拽上传PDF</div>
+                    <div class="upload-hint">测试版：识别效果因发票格式而异</div>
+                </div>
+                <div id="list4" class="file-list"></div>
+                <button class="btn btn-primary" id="btn4" onclick="upload('/extract/invoice', 'file4', 'result4', 'btn4')">
+                    <span>识别发票</span>
+                </button>
+                <div class="progress" id="progress4">
+                    <div class="progress-bar"><div class="progress-fill" id="fill4"></div></div>
+                    <div class="progress-text" id="text4">处理中...</div>
+                </div>
+                <div class="result result-info" id="result4"></div>
+            </div>
+
+            <!-- PDF拆分 -->
+            <div class="tool-card" style="grid-column: 1 / -1;">
+                <div class="tool-header">
+                    <div class="tool-icon icon-split">✂️</div>
+                    <div class="tool-title">
+                        <h3>PDF拆分</h3>
+                        <p>按页码范围拆分证书、试卷</p>
+                    </div>
+                </div>
+                <div class="upload-area" onclick="document.getElementById('file5').click()">
+                    <input type="file" id="file5" accept=".pdf" onchange="handleFile(this, 'list5')">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">点击或拖拽上传PDF</div>
+                    <div class="upload-hint">支持多页PDF</div>
+                </div>
+                <div id="list5" class="file-list"></div>
+                <div class="input-group">
+                    <input type="text" id="pages" placeholder="页码范围，如：1-3 或 5 或 1-3,5,7-9">
+                    <div class="input-hint">单页(5)、范围(1-3)、多段(1-3,5,7-9)</div>
+                </div>
+                <button class="btn btn-primary" id="btn5" onclick="upload('/split', 'file5', 'result5', 'btn5', {pages: document.getElementById('pages').value})">
+                    <span>拆分下载</span>
+                </button>
+                <div class="progress" id="progress5">
+                    <div class="progress-bar"><div class="progress-fill" id="fill5"></div></div>
+                    <div class="progress-text" id="text5">处理中...</div>
+                </div>
+                <div class="result result-success" id="result5"></div>
+            </div>
         </div>
 
-        <div class="api-box">
-            <h3>提取表格</h3>
-            <input type="file" id="file3" accept=".pdf" onchange="showFileName(this, 'list3')">
-            <div id="list3" class="file-list"></div>
-            <button onclick="upload('/extract/tables', 'file3')">提取表格</button>
-            <div class="loading" id="load3">处理中...</div>
-            <div class="result" id="result3"></div>
-        </div>
-
-        <div class="api-box">
-            <h3>发票识别</h3>
-            <input type="file" id="file4" accept=".pdf" onchange="showFileName(this, 'list4')">
-            <div id="list4" class="file-list"></div>
-            <p class="hint" style="color:#ff6b6b; margin-bottom:12px;">测试版：识别效果因发票格式而异</p>
-            <button onclick="upload('/extract/invoice', 'file4')">识别发票</button>
-            <div class="loading" id="load4">处理中...</div>
-            <div class="result" id="result4"></div>
-        </div>
-
-
-        <div class="api-box">
-            <h3>PDF拆分</h3>
-            <input type="file" id="file5" accept=".pdf" onchange="showFileName(this, 'list5')">
-            <div id="list5" class="file-list"></div>
-            <input type="text" id="pages" placeholder="页码范围，如：1-3 或 5 或 1-3,5,7-9">
-            <p class="hint">支持格式：单页(5)、范围(1-3)、多段(1-3,5,7-9)</p>
-            <button onclick="upload('/split', 'file5', {pages: document.getElementById('pages').value})">拆分下载</button>
-            <div class="loading" id="load5">处理中...</div>
-            <div class="result" id="result5"></div>
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>PDF工具箱 · 教师办公自动化</p>
+            <p style="margin-top: 8px; font-size: 12px;">
+                文件处理完成后自动删除，保护隐私 |
+                <a href="https://afdian.net/a/你的用户名" target="_blank">需要自建服务？查看教程</a>
+            </p>
         </div>
     </div>
 
     <script>
-        function showFileName(input, listId) {
+        // 模拟统计数据（实际可从后端获取）
+        let processedFiles = 0;
+
+        function handleFile(input, listId) {
             const list = document.getElementById(listId);
-            if (input.multiple) {
-                list.innerHTML = Array.from(input.files).map(f => `<span class="file-tag">${f.name}</span>`).join('');
-            } else {
-                list.innerHTML = input.files[0] ? `<span class="file-tag">${input.files[0].name}</span>` : '';
+            const file = input.files[0];
+            if (file) {
+                list.innerHTML = `<span class="file-tag">${file.name} <span class="remove" onclick="clearFile('${input.id}', '${listId}')">✕</span></span>`;
             }
         }
 
-        async function upload(url, fileId, extraData = {}) {
-            const file = document.getElementById(fileId).files[0];
-            if (!file) return alert('请选择文件');
+        function handleMultipleFiles(input, listId) {
+            const list = document.getElementById(listId);
+            const files = Array.from(input.files);
+            if (files.length > 0) {
+                list.innerHTML = files.map(f => `<span class="file-tag">${f.name}</span>`).join('');
+            }
+        }
 
-            const loadId = 'load' + fileId.replace('file', '');
-            const resId = 'result' + fileId.replace('file', '');
-            document.getElementById(loadId).style.display = 'block';
-            document.getElementById(resId).classList.remove('show');
+        function clearFile(inputId, listId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(listId).innerHTML = '';
+        }
+
+        function showProgress(id, show = true) {
+            document.getElementById('progress' + id).classList.toggle('show', show);
+            if (show) {
+                let width = 0;
+                const interval = setInterval(() => {
+                    width += Math.random() * 15;
+                    if (width > 90) width = 90;
+                    document.getElementById('fill' + id).style.width = width + '%';
+                }, 200);
+                return interval;
+            }
+        }
+
+        function hideProgress(id, interval) {
+            clearInterval(interval);
+            document.getElementById('fill' + id).style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('progress' + id).classList.remove('show');
+                document.getElementById('fill' + id).style.width = '0%';
+            }, 500);
+        }
+
+        function showResult(id, type, content) {
+            const el = document.getElementById('result' + id);
+            el.className = 'result result-' + type + ' show';
+            el.innerHTML = content;
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            if (loading) {
+                btn.innerHTML = '<span class="spinner"></span><span>处理中...</span>';
+            } else {
+                btn.innerHTML = '<span>' + (btnId === 'btn2' ? '合并下载' : btnId === 'btn5' ? '拆分下载' : '提取') + '</span>';
+            }
+        }
+
+        async function upload(url, fileId, resultId, btnId, extraData = {}) {
+            const file = document.getElementById(fileId).files[0];
+            if (!file) {
+                showResult(resultId.replace('result', ''), 'error', '<div class="result-title">⚠️ 错误</div><div class="result-content">请先选择文件</div>');
+                return;
+            }
+
+            setLoading(btnId, true);
+            const progressInterval = showProgress(resultId.replace('result', ''));
 
             const form = new FormData();
             form.append('file', file);
@@ -176,6 +617,8 @@
                 const res = await fetch(url, {method: 'POST', body: form});
                 const contentType = res.headers.get('content-type');
 
+                hideProgress(resultId.replace('result', ''), progressInterval);
+
                 if (contentType && contentType.includes('application/pdf')) {
                     const blob = await res.blob();
                     const link = document.createElement('a');
@@ -183,27 +626,44 @@
                     const filename = res.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1] || 'download.pdf';
                     link.download = filename;
                     link.click();
-                    showResult(resId, 'success', 'PDF已下载：' + filename);
+                    showResult(resultId.replace('result', ''), 'success',
+                        '<div class="result-title">✅ 成功</div><div class="result-content">PDF已下载：' + filename + '</div>');
+                    processedFiles++;
                 } else {
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.detail || data.error || '处理失败');
-                    showResult(resId, 'success', JSON.stringify(data, null, 2));
+
+                    if (url.includes('text')) {
+                        showResult(resultId.replace('result', ''), 'info',
+                            '<div class="result-title">📝 提取结果</div><div class="result-content"><pre>' + escapeHtml(data.text.substring(0, 2000)) + (data.text.length > 2000 ? '...' : '') + '</pre></div>');
+                    } else if (url.includes('tables')) {
+                        showResult(resultId.replace('result', ''), 'info',
+                            '<div class="result-title">📊 共找到 ' + data.count + ' 个表格</div><div class="result-content"><pre>' + JSON.stringify(data.tables, null, 2).substring(0, 2000) + '</pre></div>');
+                    } else if (url.includes('invoice')) {
+                        showResult(resultId.replace('result', ''), 'info',
+                            '<div class="result-title">🧾 发票信息</div><div class="result-content"><pre>' + JSON.stringify(data, null, 2) + '</pre></div>');
+                    }
+                    processedFiles++;
                 }
+                document.getElementById('stat-files').textContent = processedFiles;
             } catch (err) {
-                showResult(resId, 'error', '错误：' + err.message);
+                hideProgress(resultId.replace('result', ''), progressInterval);
+                showResult(resultId.replace('result', ''), 'error',
+                    '<div class="result-title">❌ 错误</div><div class="result-content">' + err.message + '</div>');
             } finally {
-                document.getElementById(loadId).style.display = 'none';
+                setLoading(btnId, false);
             }
         }
 
-        async function uploadMultiple(url, fileId) {
+        async function uploadMultiple(url, fileId, resultId, btnId) {
             const files = document.getElementById(fileId).files;
-            if (files.length < 2) return alert('请至少选择2个文件');
+            if (files.length < 2) {
+                showResult(resultId.replace('result', ''), 'error', '<div class="result-title">⚠️ 错误</div><div class="result-content">请至少选择2个文件</div>');
+                return;
+            }
 
-            const loadId = 'load' + fileId.replace('file', '');
-            const resId = 'result' + fileId.replace('file', '');
-            document.getElementById(loadId).style.display = 'block';
-            document.getElementById(resId).classList.remove('show');
+            setLoading(btnId, true);
+            const progressInterval = showProgress(resultId.replace('result', ''));
 
             const form = new FormData();
             Array.from(files).forEach(f => form.append('files', f));
@@ -219,19 +679,46 @@
                 link.href = URL.createObjectURL(blob);
                 link.download = 'merged.pdf';
                 link.click();
-                showResult(resId, 'success', '合并完成，已下载 merged.pdf');
+                hideProgress(resultId.replace('result', ''), progressInterval);
+                showResult(resultId.replace('result', ''), 'success',
+                    '<div class="result-title">✅ 成功</div><div class="result-content">合并完成，已下载 merged.pdf</div>');
+                processedFiles++;
+                document.getElementById('stat-files').textContent = processedFiles;
             } catch (err) {
-                showResult(resId, 'error', '错误：' + err.message);
+                hideProgress(resultId.replace('result', ''), progressInterval);
+                showResult(resultId.replace('result', ''), 'error',
+                    '<div class="result-title">❌ 错误</div><div class="result-content">' + err.message + '</div>');
             } finally {
-                document.getElementById(loadId).style.display = 'none';
+                setLoading(btnId, false);
             }
         }
 
-        function showResult(id, type, text) {
-            const el = document.getElementById(id);
-            el.className = 'result show ' + type;
-            el.innerHTML = '<pre>' + text + '</pre>';
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
+
+        // 拖拽支持
+        document.querySelectorAll('.upload-area').forEach(area => {
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                const input = area.querySelector('input');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        });
     </script>
 </body>
 </html>
